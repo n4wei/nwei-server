@@ -12,6 +12,7 @@ func main() {
 	var serverConfig server.ServerConfig
 	flag.StringVar(&serverConfig.TLSCertPath, "tls-cert", "", "The filepath to the certificate used for TLS")
 	flag.StringVar(&serverConfig.TLSKeyPath, "tls-key", "", "The filepath to the private key used for TLS")
+	flag.StringVar(&serverConfig.ClientCAPath, "client-ca", "", "The filepath to the client's CA certificate")
 	flag.Parse()
 
 	logger := logger.NewLogger()
