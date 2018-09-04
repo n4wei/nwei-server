@@ -4,19 +4,21 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/n4wei/nwei-server/controller"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
 const (
-	defaultTLSPort = ":8443"
+	defaultTLSPort = 8443
 )
 
 type ServerConfig struct {
-	Logger logger.Logger
+	Port    int
+	Handler http.Handler
+	Logger  logger.Logger
 
 	TLSCertPath  string
 	TLSKeyPath   string
@@ -24,7 +26,9 @@ type ServerConfig struct {
 }
 
 type Server struct {
-	Logger logger.Logger
+	port    int
+	handler http.Handler
+	logger  logger.Logger
 
 	tlsCertPath  string
 	tlsKeyPath   string
@@ -33,7 +37,9 @@ type Server struct {
 
 func NewServer(config ServerConfig) *Server {
 	return &Server{
-		Logger:       config.Logger,
+		port:         config.Port,
+		handler:      config.Handler,
+		logger:       config.Logger,
 		tlsCertPath:  config.TLSCertPath,
 		tlsKeyPath:   config.TLSKeyPath,
 		clientCAPath: config.ClientCAPath,
@@ -57,13 +63,17 @@ func (s *Server) Serve() error {
 	}
 	tlsConfig.BuildNameToCertificate()
 
+	if s.port == 0 {
+		s.port = defaultTLSPort
+	}
+
 	server := &http.Server{
-		Addr:      defaultTLSPort,
+		Addr:      fmt.Sprintf(":%d", s.port),
+		Handler:   s.handler,
 		TLSConfig: tlsConfig,
 	}
 
-	http.HandleFunc("/", controller.Handler)
-	s.Logger.Printf("listening on %s", defaultTLSPort)
+	s.logger.Printf("listening on %s", server.Addr)
 
 	err = server.ListenAndServeTLS(s.tlsCertPath, s.tlsKeyPath)
 	if err != nil {

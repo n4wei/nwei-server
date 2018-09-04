@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/n4wei/nwei-server/controller"
 	"github.com/n4wei/nwei-server/lib/logger"
 	"github.com/n4wei/nwei-server/server"
 )
@@ -16,7 +17,9 @@ func main() {
 	flag.Parse()
 
 	logger := logger.NewLogger()
+	serverConfig.Handler = controller.NewController(logger).Handler()
 	serverConfig.Logger = logger
+
 	server := server.NewServer(serverConfig)
 
 	err := server.Serve()
