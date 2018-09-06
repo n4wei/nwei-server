@@ -15,8 +15,8 @@ type controller struct {
 
 func NewController(logger logger.Logger) *controller {
 	router := http.NewServeMux()
-	router.Handle("/test", Adapt(test.Handler(), WithLogging(logger)))
-	router.Handle("/health", Adapt(health.Handler(), WithLogging(logger)))
+	router.Handle("/test", chain(test.Handler, WithLogging(logger)))
+	router.Handle("/health", chain(health.Handler, WithLogging(logger)))
 
 	return &controller{
 		router: router,

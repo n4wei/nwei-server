@@ -67,6 +67,7 @@ func (s *Server) Serve() error {
 		s.port = defaultTLSPort
 	}
 
+	// TODO: timeouts
 	server := &http.Server{
 		Addr:      fmt.Sprintf(":%d", s.port),
 		Handler:   s.handler,

@@ -22,6 +22,7 @@ func main() {
 
 	server := server.NewServer(serverConfig)
 
+	// TODO: graceful stop
 	err := server.Serve()
 	if err != nil {
 		logger.Error(err)
