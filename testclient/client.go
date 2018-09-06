@@ -39,7 +39,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("response: %s\n", body)
+	fmt.Printf("%s", body)
 }
 
 func HandleErr(err error) {

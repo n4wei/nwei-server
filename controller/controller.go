@@ -3,6 +3,8 @@ package controller
 import (
 	"net/http"
 
+	"github.com/n4wei/nwei-server/controller/health"
+	"github.com/n4wei/nwei-server/controller/test"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
@@ -12,15 +14,16 @@ type controller struct {
 }
 
 func NewController(logger logger.Logger) *controller {
+	router := http.NewServeMux()
+	router.Handle("/test", Adapt(test.Handler(), WithLogging(logger)))
+	router.Handle("/health", Adapt(health.Handler(), WithLogging(logger)))
+
 	return &controller{
-		router: http.NewServeMux(),
+		router: router,
 		logger: logger,
 	}
 }
 
 func (c *controller) Handler() http.Handler {
-	c.router.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("success\n"))
-	})
 	return c.router
 }
