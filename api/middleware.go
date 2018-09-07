@@ -18,7 +18,7 @@ func chain(handler http.HandlerFunc, middleware ...middleware) http.HandlerFunc 
 func WithLogging(logger logger.Logger) middleware {
 	return func(handler http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			logger.Printf("Request: %#v\n", r)
+			logger.Print(logger.FormatHTTPRequest(r))
 			handler.ServeHTTP(w, r)
 		}
 	}
