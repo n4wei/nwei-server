@@ -1,10 +1,10 @@
-package controller
+package api
 
 import (
 	"net/http"
 
-	"github.com/n4wei/nwei-server/controller/health"
-	"github.com/n4wei/nwei-server/controller/test"
+	"github.com/n4wei/nwei-server/api/healthcheck"
+	"github.com/n4wei/nwei-server/api/weight"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
@@ -15,8 +15,8 @@ type controller struct {
 
 func NewController(logger logger.Logger) *controller {
 	router := http.NewServeMux()
-	router.Handle("/test", chain(test.Handler, WithLogging(logger)))
-	router.Handle("/health", chain(health.Handler, WithLogging(logger)))
+	router.Handle("/healthcheck", chain(healthcheck.Handler, WithLogging(logger)))
+	router.Handle("/weight", chain(weight.Handler, WithLogging(logger)))
 
 	return &controller{
 		router: router,
