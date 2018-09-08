@@ -1,20 +1,87 @@
 package weight
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
+	"time"
+
+	"github.com/n4wei/nwei-server/db"
 )
 
+const (
+	defaultDB         = "health"
+	defaultCollection = "weight"
+)
+
+type Weight struct {
+	Value float64 `json:"value" bson:"value"`
+	Time  int64   `json:"time" bson:"time"`
+}
+
 func Handler(w http.ResponseWriter, r *http.Request) {
+	// TODO: timeouts
 	switch r.Method {
 	case "GET":
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"GET": "foo"}`))
+		handleGet(w, r)
 	case "POST":
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"POST": "bar"}`))
+		handlePost(w, r)
 	default:
 		http.Error(w, "only GET and POST are allowed", http.StatusBadRequest)
 	}
+}
+
+func handleGet(w http.ResponseWriter, r *http.Request) {
+	var weight Weight
+	var weights []Weight
+	dbClient := r.Context().Value("dbClient").(db.Client)
+
+	err := dbClient.List(defaultDB, defaultCollection, &weight, func(result interface{}) error {
+		r, ok := result.(*Weight)
+		if !ok {
+			return errors.New("could not convert database entry to type Weight")
+		}
+		weights = append(weights, *r)
+		return nil
+	})
+	if err != nil {
+		handleErr(w, err)
+	}
+
+	data, err := json.Marshal(weights)
+	if err != nil {
+		handleErr(w, err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+func handlePost(w http.ResponseWriter, r *http.Request) {
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		handleErr(w, err)
+	}
+	defer r.Body.Close()
+
+	var weight Weight
+	err = json.Unmarshal(data, &weight)
+	if err != nil {
+		handleErr(w, err)
+	}
+	weight.Time = time.Now().Unix()
+
+	dbClient := r.Context().Value("dbClient").(db.Client)
+	err = dbClient.Create(defaultDB, defaultCollection, weight)
+	if err != nil {
+		handleErr(w, err)
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+func handleErr(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }

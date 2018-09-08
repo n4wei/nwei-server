@@ -5,22 +5,25 @@ import (
 
 	"github.com/n4wei/nwei-server/api/healthcheck"
 	"github.com/n4wei/nwei-server/api/weight"
+	"github.com/n4wei/nwei-server/db"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
 type controller struct {
-	router *http.ServeMux
-	logger logger.Logger
+	dbClient db.Client
+	router   *http.ServeMux
+	logger   logger.Logger
 }
 
-func NewController(logger logger.Logger) *controller {
+func NewController(dbClient db.Client, logger logger.Logger) *controller {
 	router := http.NewServeMux()
 	router.Handle("/healthcheck", chain(healthcheck.Handler, WithLogging(logger)))
-	router.Handle("/weight", chain(weight.Handler, WithLogging(logger)))
+	router.Handle("/weight", chain(weight.Handler, WithLogging(logger), WithDB(dbClient)))
 
 	return &controller{
-		router: router,
-		logger: logger,
+		dbClient: dbClient,
+		router:   router,
+		logger:   logger,
 	}
 }
 

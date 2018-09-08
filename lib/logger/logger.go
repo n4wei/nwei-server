@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +15,7 @@ type Logger interface {
 	Error(...interface{})
 	Errorf(string, ...interface{})
 	FormatHTTPRequest(*http.Request) string
+	FormatHTTPResponse(*http.Response) string
 }
 
 type MyLogger struct {
@@ -46,16 +49,52 @@ func (l *MyLogger) Errorf(format string, v ...interface{}) {
 }
 
 func (l *MyLogger) FormatHTTPRequest(r *http.Request) string {
-	// TODO: include body
+	log := fmt.Sprintf(`HTTP Request
+%s %s %s
+Host: %s
+%s`, r.Method, r.URL.Path, r.Proto, r.Host, formatHeader(r.Header))
+
+	if r.Body != nil {
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			l.Errorf(err.Error(), log)
+		} else {
+			r.Body.Close()
+			r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			log = fmt.Sprintf("%s%s", log, data)
+		}
+	}
+
+	return log
+}
+
+func (l *MyLogger) FormatHTTPResponse(r *http.Response) string {
+	log := fmt.Sprintf(`HTTP Response
+%s
+%s %s %s
+Host: %s
+%s`, r.Status, r.Request.Method, r.Request.URL.Path, r.Proto, r.Request.Host, formatHeader(r.Header))
+
+	if r.Body != nil {
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			l.Errorf(err.Error(), log)
+		} else {
+			r.Body.Close()
+			r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			log = fmt.Sprintf("%s%s", log, data)
+		}
+	}
+
+	return log
+}
+
+func formatHeader(header map[string][]string) string {
 	headers := ""
-	for key, values := range r.Header {
+	for key, values := range header {
 		for _, value := range values {
 			headers = fmt.Sprintf("%s%s: %s\n", headers, key, value)
 		}
 	}
-
-	return fmt.Sprintf(`HTTP Request
-%s %s %s
-Host: %s
-%s`, r.Method, r.URL.Path, r.Proto, r.Host, headers)
+	return headers
 }
