@@ -13,7 +13,8 @@ Provided via mutual TLS.
 go run main.go \
   --tls-cert certs/nwei-server.crt \
   --tls-key certs/nwei-server.key \
-  --client-ca certs/nwei-ca.crt
+  --client-ca certs/nwei-ca.crt \
+  --port 8443
 ```
 
 ### Run testclient
