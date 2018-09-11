@@ -20,6 +20,9 @@ func main() {
 	var dbConfig db.DBConfig
 	flag.StringVar(&dbConfig.URL, "db-url", "localhost", "The database URL")
 	flag.IntVar(&dbConfig.Port, "db-port", 27017, "The database port")
+	flag.StringVar(&dbConfig.Username, "db-username", "", "The username used for database authentication")
+	flag.StringVar(&dbConfig.Password, "db-password", "", "The password used for database authentication")
+	flag.StringVar(&dbConfig.AuthDB, "db-auth", "", "The database to authenticate against")
 
 	flag.Parse()
 

@@ -18,6 +18,10 @@ type DBConfig struct {
 	URL  string
 	Port int
 
+	Username string
+	Password string
+	AuthDB   string
+
 	Logger logger.Logger
 }
 
@@ -26,9 +30,17 @@ type DBClient struct {
 	logger logger.Logger
 }
 
-// TODO: db auth
 func NewClient(config DBConfig) (*DBClient, error) {
-	addr := fmt.Sprintf("mongodb://%s:%d", config.URL, config.Port)
+	auth := ""
+	if config.Username != "" && config.Password != "" {
+		auth = fmt.Sprintf("%s:%s@", config.Username, config.Password)
+	}
+	authDB := ""
+	if config.AuthDB != "" {
+		authDB = fmt.Sprintf("/%s", config.AuthDB)
+	}
+	addr := fmt.Sprintf("mongodb://%s%s:%d%s", auth, config.URL, config.Port, authDB)
+
 	client, err := mongo.Connect(nil, addr)
 	if err != nil {
 		return nil, err
@@ -48,8 +60,7 @@ func (c *DBClient) Close() error {
 
 // TODO: timeouts
 func (c *DBClient) Create(dbName string, collectionName string, data interface{}) error {
-	collection := c.client.Database(dbName).Collection(collectionName)
-	result, err := collection.InsertOne(nil, data)
+	result, err := c.client.Database(dbName).Collection(collectionName).InsertOne(nil, data)
 	if err != nil {
 		return err
 	}
@@ -60,8 +71,7 @@ func (c *DBClient) Create(dbName string, collectionName string, data interface{}
 
 // TODO: timeouts
 func (c *DBClient) List(dbName string, collectionName string, result interface{}, handleResult func(interface{}) error) error {
-	collection := c.client.Database(dbName).Collection(collectionName)
-	cursor, err := collection.Find(nil, nil)
+	cursor, err := c.client.Database(dbName).Collection(collectionName).Find(nil, nil)
 	if err != nil {
 		return err
 	}
