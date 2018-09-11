@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/n4wei/nwei-server/lib/logger"
@@ -15,13 +14,7 @@ type Client interface {
 }
 
 type DBConfig struct {
-	URL  string
-	Port int
-
-	Username string
-	Password string
-	AuthDB   string
-
+	URL    string
 	Logger logger.Logger
 }
 
@@ -31,22 +24,10 @@ type DBClient struct {
 }
 
 func NewClient(config DBConfig) (*DBClient, error) {
-	auth := ""
-	if config.Username != "" && config.Password != "" {
-		auth = fmt.Sprintf("%s:%s@", config.Username, config.Password)
-	}
-	authDB := ""
-	if config.AuthDB != "" {
-		authDB = fmt.Sprintf("/%s", config.AuthDB)
-	}
-	addr := fmt.Sprintf("mongodb://%s%s:%d%s", auth, config.URL, config.Port, authDB)
-
-	client, err := mongo.Connect(nil, addr)
+	client, err := mongo.Connect(nil, config.URL)
 	if err != nil {
 		return nil, err
 	}
-
-	config.Logger.Printf("db listening on :%d", config.Port)
 
 	return &DBClient{
 		client: client,
