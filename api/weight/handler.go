@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	defaultDB         = "health"
-	defaultCollection = "weight"
+	dbCollection = "weight"
 )
 
 type Weight struct {
@@ -40,7 +39,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 		handleErr(w, errors.New("no DB client available"))
 	}
 
-	err := dbClient.List(defaultDB, defaultCollection, &weight, func(result interface{}) error {
+	err := dbClient.List(dbCollection, &weight, func(result interface{}) error {
 		r, ok := result.(*Weight)
 		if !ok {
 			return errors.New("could not convert database entry to type Weight")
@@ -81,7 +80,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 		handleErr(w, errors.New("no DB client available"))
 	}
 
-	err = dbClient.Create(defaultDB, defaultCollection, weight)
+	err = dbClient.Create(dbCollection, weight)
 	if err != nil {
 		handleErr(w, err)
 	}
