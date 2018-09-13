@@ -21,7 +21,6 @@ type Weight struct {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// TODO: timeouts
 	switch r.Method {
 	case "GET":
 		handleGet(w, r)
@@ -35,7 +34,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	var weight Weight
 	var weights []Weight
-	dbClient := r.Context().Value("dbClient").(db.Client)
+
+	dbClient, ok := r.Context().Value("dbClient").(db.Client)
+	if !ok {
+		handleErr(w, errors.New("no DB client available"))
+	}
 
 	err := dbClient.List(defaultDB, defaultCollection, &weight, func(result interface{}) error {
 		r, ok := result.(*Weight)
@@ -73,7 +76,11 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	weight.Time = time.Now().Unix()
 
-	dbClient := r.Context().Value("dbClient").(db.Client)
+	dbClient, ok := r.Context().Value("dbClient").(db.Client)
+	if !ok {
+		handleErr(w, errors.New("no DB client available"))
+	}
+
 	err = dbClient.Create(defaultDB, defaultCollection, weight)
 	if err != nil {
 		handleErr(w, err)
