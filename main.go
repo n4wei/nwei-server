@@ -1,13 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/n4wei/nwei-server/api"
 	"github.com/n4wei/nwei-server/db"
 	"github.com/n4wei/nwei-server/lib/logger"
 	"github.com/n4wei/nwei-server/server"
+)
+
+const (
+	cleanupAndShutdownTime = 5 * time.Second
 )
 
 func main() {
@@ -31,12 +39,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	serverConfig.Logger = logger
 	serverConfig.Handler = api.NewController(dbClient, logger).Handler()
-	server := server.NewServer(serverConfig)
+	server, err := server.NewServer(serverConfig)
+	if err != nil {
+		logger.Error(err)
+		os.Exit(1)
+	}
 
-	// TODO: graceful stop
-	err = server.Serve()
+	stop := make(chan os.Signal)
+	signal.Notify(stop, syscall.SIGTERM)
+	signal.Notify(stop, syscall.SIGINT)
+
+	go func() {
+		sig := <-stop
+		logger.Printf("caught signal: %v\nshutting down...", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), cleanupAndShutdownTime)
+		defer cancel()
+
+		err := server.Shutdown(ctx)
+		if err != nil {
+			logger.Error(err)
+			os.Exit(1)
+		}
+
+		os.Exit(0)
+	}()
+
+	logger.Printf("listening on %s", server.Addr)
+
+	err = server.ListenAndServeTLS(serverConfig.TLSCertPath, serverConfig.TLSKeyPath)
 	if err != nil {
 		logger.Error(err)
 		os.Exit(1)
