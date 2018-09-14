@@ -16,7 +16,7 @@ const (
 type Client interface {
 	Create(string, interface{}) error
 	List(string, interface{}, func(interface{}) error) error
-	Close() error
+	Close(context.Context) error
 }
 
 type DBConfig struct {
@@ -44,8 +44,8 @@ func NewClient(config DBConfig) (*DBClient, error) {
 	}, nil
 }
 
-func (c *DBClient) Close() error {
-	return c.client.Disconnect(context.Background())
+func (c *DBClient) Close(ctx context.Context) error {
+	return c.client.Disconnect(ctx)
 }
 
 func (c *DBClient) Create(collectionName string, data interface{}) error {

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	cleanupAndShutdownTime = 5 * time.Second
+	cleanupAndShutdownTimeout = 5 * time.Second
 )
 
 func main() {
@@ -47,17 +47,23 @@ func main() {
 	}
 
 	stop := make(chan os.Signal)
-	signal.Notify(stop, syscall.SIGTERM)
-	signal.Notify(stop, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		sig := <-stop
-		logger.Printf("caught signal: %v\nshutting down...", sig)
+		logger.Printf("caught signal: %v", sig)
+		logger.Print("shutting down...")
 
-		ctx, cancel := context.WithTimeout(context.Background(), cleanupAndShutdownTime)
+		ctx, cancel := context.WithTimeout(context.Background(), cleanupAndShutdownTimeout)
 		defer cancel()
 
-		err := server.Shutdown(ctx)
+		err := dbClient.Close(ctx)
+		if err != nil {
+			logger.Error(err)
+			os.Exit(1)
+		}
+
+		err = server.Shutdown(ctx)
 		if err != nil {
 			logger.Error(err)
 			os.Exit(1)
