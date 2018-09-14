@@ -20,13 +20,13 @@ const (
 
 func main() {
 	var serverConfig server.ServerConfig
-	flag.IntVar(&serverConfig.Port, "port", 0, "The port that the server will listen on")
+	flag.IntVar(&serverConfig.Port, "port", 8443, "The port that the server will listen on")
 	flag.StringVar(&serverConfig.TLSCertPath, "tls-cert", "", "The filepath to the certificate used for TLS")
 	flag.StringVar(&serverConfig.TLSKeyPath, "tls-key", "", "The filepath to the private key used for TLS")
 	flag.StringVar(&serverConfig.ClientCAPath, "client-ca", "", "The filepath to the client's CA certificate")
 
 	var dbConfig db.DBConfig
-	flag.StringVar(&dbConfig.URL, "db-url", "localhost:27017", "The full database URL with optional auth")
+	flag.StringVar(&dbConfig.URL, "db-url", "mongodb://localhost:27017", "The full database URL with optional auth")
 
 	flag.Parse()
 

@@ -9,10 +9,6 @@ import (
 	"net/http"
 )
 
-const (
-	defaultTLSPort = 8443
-)
-
 type ServerConfig struct {
 	Port    int
 	Handler http.Handler
@@ -39,14 +35,9 @@ func NewServer(config ServerConfig) (*http.Server, error) {
 	}
 	tlsConfig.BuildNameToCertificate()
 
-	var port int
-	if config.Port == 0 {
-		port = defaultTLSPort
-	}
-
 	// TODO: timeouts
 	return &http.Server{
-		Addr:      fmt.Sprintf(":%d", port),
+		Addr:      fmt.Sprintf(":%d", config.Port),
 		Handler:   config.Handler,
 		TLSConfig: tlsConfig,
 	}, nil
