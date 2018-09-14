@@ -1,6 +1,7 @@
 package weight
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 
 const (
 	dbCollection = "weight"
+	timeout      = 5 * time.Second
 )
 
 type Weight struct {
@@ -39,7 +41,10 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 		handleErr(w, errors.New("no DB client available"))
 	}
 
-	err := dbClient.List(dbCollection, &weight, func(result interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := dbClient.List(ctx, dbCollection, &weight, func(result interface{}) error {
 		r, ok := result.(*Weight)
 		if !ok {
 			return errors.New("could not convert database entry to type Weight")
@@ -80,7 +85,10 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 		handleErr(w, errors.New("no DB client available"))
 	}
 
-	err = dbClient.Create(dbCollection, weight)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err = dbClient.Create(ctx, dbCollection, weight)
 	if err != nil {
 		handleErr(w, err)
 	}

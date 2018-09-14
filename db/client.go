@@ -3,19 +3,14 @@ package db
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
-const (
-	defaultTimeout = 3 * time.Second
-)
-
 type Client interface {
-	Create(string, interface{}) error
-	List(string, interface{}, func(interface{}) error) error
+	Create(context.Context, string, interface{}) error
+	List(context.Context, string, interface{}, func(interface{}) error) error
 	Close(context.Context) error
 }
 
@@ -48,10 +43,7 @@ func (c *DBClient) Close(ctx context.Context) error {
 	return c.client.Disconnect(ctx)
 }
 
-func (c *DBClient) Create(collectionName string, data interface{}) error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
-	defer cancel()
-
+func (c *DBClient) Create(ctx context.Context, collectionName string, data interface{}) error {
 	result, err := c.client.Database(c.dbName).Collection(collectionName).InsertOne(ctx, data)
 	if err != nil {
 		return err
@@ -61,17 +53,20 @@ func (c *DBClient) Create(collectionName string, data interface{}) error {
 	return nil
 }
 
-func (c *DBClient) List(collectionName string, result interface{}, handleResult func(interface{}) error) error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
-	defer cancel()
-
+func (c *DBClient) List(ctx context.Context, collectionName string, result interface{}, handleResult func(interface{}) error) error {
 	cursor, err := c.client.Database(c.dbName).Collection(collectionName).Find(ctx, nil)
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(context.Background())
 
-	for cursor.Next(context.Background()) {
+	defer func() {
+		err := cursor.Close(ctx)
+		if err != nil {
+			c.logger.Error(err)
+		}
+	}()
+
+	for cursor.Next(ctx) {
 		err := cursor.Decode(result)
 		if err != nil {
 			return err
