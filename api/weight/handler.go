@@ -36,7 +36,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	var weight Weight
 	var weights []Weight
 
-	dbClient, ok := r.Context().Value("dbClient").(db.Client)
+	dbClient, ok := r.Context().Value(db.DBClientContextKey).(db.Client)
 	if !ok {
 		handleErr(w, errors.New("no DB client available"))
 	}
@@ -80,7 +80,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	weight.Time = time.Now().Unix()
 
-	dbClient, ok := r.Context().Value("dbClient").(db.Client)
+	dbClient, ok := r.Context().Value(db.DBClientContextKey).(db.Client)
 	if !ok {
 		handleErr(w, errors.New("no DB client available"))
 	}

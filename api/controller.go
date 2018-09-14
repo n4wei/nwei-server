@@ -27,6 +27,6 @@ func NewController(dbClient db.Client, logger logger.Logger) *controller {
 	}
 }
 
-func (c *controller) Handler() http.Handler {
-	return c.router
+func (c *controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c.router.ServeHTTP(w, r)
 }

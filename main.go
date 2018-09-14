@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	serverConfig.Handler = api.NewController(dbClient, logger).Handler()
+	serverConfig.Handler = api.NewController(dbClient, logger)
 	server, err := server.NewServer(serverConfig)
 	if err != nil {
 		logger.Error(err)

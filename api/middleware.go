@@ -29,7 +29,7 @@ func WithLogging(logger logger.Logger) middleware {
 func WithDB(dbClient db.Client) middleware {
 	return func(handler http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), "dbClient", dbClient)
+			ctx := context.WithValue(r.Context(), db.DBClientContextKey, dbClient)
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		}
 	}

@@ -8,6 +8,10 @@ import (
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
+const (
+	DBClientContextKey = "dbclient"
+)
+
 type Client interface {
 	Create(context.Context, string, interface{}) error
 	List(context.Context, string, interface{}, func(interface{}) error) error
