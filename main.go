@@ -52,17 +52,11 @@ func main() {
 	go func() {
 		sig := <-stop
 		logger.Printf("caught signal: %v", sig)
-		logger.Print("shutting down...")
 
 		ctx, cancel := context.WithTimeout(context.Background(), cleanupAndShutdownTimeout)
 		defer cancel()
 
-		err := dbClient.Close(ctx)
-		if err != nil {
-			logger.Error(err)
-			os.Exit(1)
-		}
-
+		logger.Print("shutting down server...")
 		err = server.Shutdown(ctx)
 		if err != nil {
 			logger.Error(err)
