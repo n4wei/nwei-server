@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/n4wei/nwei-server/db"
+	"github.com/n4wei/nwei-server/db/mongo"
 	"github.com/n4wei/nwei-server/lib/logger"
 )
 
@@ -29,7 +30,7 @@ func WithLogging(logger logger.Logger) middleware {
 func WithDB(dbClient db.Client) middleware {
 	return func(handler http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), db.DBClientContextKey, dbClient)
+			ctx := context.WithValue(r.Context(), mongo.DBClientContextKey, dbClient)
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		}
 	}

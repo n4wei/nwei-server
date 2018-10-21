@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/n4wei/nwei-server/db"
+	"github.com/n4wei/nwei-server/db/mongo"
 )
 
 const (
@@ -36,7 +37,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	var weight Weight
 	var weights []Weight
 
-	dbClient, ok := r.Context().Value(db.DBClientContextKey).(db.Client)
+	dbClient, ok := r.Context().Value(mongo.DBClientContextKey).(db.Client)
 	if !ok {
 		handleErr(w, errors.New("no DB client available"))
 	}
@@ -80,7 +81,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	weight.Time = time.Now().Unix()
 
-	dbClient, ok := r.Context().Value(db.DBClientContextKey).(db.Client)
+	dbClient, ok := r.Context().Value(mongo.DBClientContextKey).(db.Client)
 	if !ok {
 		handleErr(w, errors.New("no DB client available"))
 	}
