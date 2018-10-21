@@ -11,15 +11,14 @@ import (
 	"github.com/n4wei/nwei-server/api"
 	"github.com/n4wei/nwei-server/db"
 	"github.com/n4wei/nwei-server/lib/logger"
-	"github.com/n4wei/nwei-server/server"
 )
 
 const (
-	cleanupAndShutdownTimeout = 5 * time.Second
+	defaultCleanupAndShutdownTimeout = 5 * time.Second
 )
 
 func main() {
-	var serverConfig server.ServerConfig
+	var serverConfig ServerConfig
 	flag.IntVar(&serverConfig.Port, "port", 8443, "The port that the server will listen on")
 	flag.StringVar(&serverConfig.TLSCertPath, "tls-cert", "", "The filepath to the certificate used for TLS")
 	flag.StringVar(&serverConfig.TLSKeyPath, "tls-key", "", "The filepath to the private key used for TLS")
@@ -40,7 +39,7 @@ func main() {
 	}
 
 	serverConfig.Handler = api.NewController(dbClient, logger)
-	server, err := server.NewServer(serverConfig)
+	server, err := NewServer(serverConfig)
 	if err != nil {
 		logger.Error(err)
 		os.Exit(1)
@@ -53,7 +52,7 @@ func main() {
 		sig := <-stop
 		logger.Printf("caught signal: %v", sig)
 
-		ctx, cancel := context.WithTimeout(context.Background(), cleanupAndShutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), defaultCleanupAndShutdownTimeout)
 		defer cancel()
 
 		logger.Print("shutting down server...")
