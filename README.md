@@ -1,10 +1,8 @@
 # nwei-server
 
-A place to keep data nwei cares about.
-
 ## Authentication
 
-Provided via mutual TLS.
+mutual TLS
 
 ## Example usage
 
